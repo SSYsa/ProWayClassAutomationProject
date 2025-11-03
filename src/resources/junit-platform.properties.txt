@@ -1,0 +1,2 @@
+cucumber.glue=com.saucedemo.steps
+cucumber.features=classpath:features
