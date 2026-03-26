@@ -1,0 +1,24 @@
+    @Test
+    void filterProductsTest() {
+        //realizou o login com credenciais válidas
+        page.locator("#user-name").fill("standard_user");
+        page.locator("#password").fill("secret_sauce");
+        page.locator("#login-button").click();
+        page.waitForTimeout(3000);
+
+        // Verifica se redirecionou para a página de produtos
+        Assertions.assertTrue(page.url().contains("inventory.html"));
+
+        //clico em filtro
+        page.locator("select[data-test='product-sort-container']").click();
+        page.waitForTimeout(3000);
+
+        //selecionar a opção
+        page.keyboard().press("ArrowDown");
+        page.keyboard().press("ArrowDown");
+        page.keyboard().press("ArrowDown");
+        page.keyboard().press("Enter");
+        page.waitForTimeout(3000);
+
+        Assertions.assertTrue(page.locator("xpath=//span[@data-test='active-option' and contains(text(), 'Price (high to low)')]").isVisible());
+    }
