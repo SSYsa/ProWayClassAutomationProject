@@ -1,11 +1,77 @@
-    @Test
-    void filterProductsTest() {
-        //realizou o login com credenciais válidas
+package com.saucedemo;
+
+import com.microsoft.playwright.*;
+import org.junit.jupiter.api.*;
+
+public class SaucedemoTest {
+
+    static Playwright playwright;
+    static Browser browser;
+    BrowserContext context;
+    Page page;
+
+    @BeforeAll
+    static void setupAll() {
+        playwright = Playwright.create();
+        browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+    }
+
+    @BeforeEach
+    void setup() {
+        context = browser.newContext();
+        page = context.newPage();
+        page.navigate("https://www.saucedemo.com/");
         page.locator("#user-name").fill("standard_user");
         page.locator("#password").fill("secret_sauce");
         page.locator("#login-button").click();
+    }
+
+    @Test
+    void removeProductsFromCartTest() {
+        // Verifica se redirecionou para a página de produtos
+        Assertions.assertTrue(page.url().contains("inventory.html"));
+
+        //clicar em adicionar produto ao carrinho
+        page.locator("button[id='add-to-cart-sauce-labs-backpack']").click();
         page.waitForTimeout(3000);
 
+        //clicar no carrinho
+        page.locator("a[data-test='shopping-cart-link']").click();
+
+        page.waitForTimeout(3000);
+
+        //removendo o produto do carrinho
+        page.locator("button[id='remove-sauce-labs-backpack']").click();
+        page.waitForTimeout(3000);
+    }
+
+    @Test
+    void fluxoDeCompraTest() {
+        //adding products to the cart
+        page.locator("*[id='add-to-cart-sauce-labs-backpack']").click();
+        page.locator("*[id='add-to-cart-sauce-labs-bike-light']").click();
+        page.locator("*[id='add-to-cart-sauce-labs-bolt-t-shirt']").click();
+        page.locator("*[id='add-to-cart-sauce-labs-fleece-jacket']").click();
+
+        //clicar no carrinho
+        page.locator("a[data-test='shopping-cart-link']").click();
+        page.waitForTimeout(3000);
+
+        //checkout
+        page.locator("*[id='checkout']").click();
+
+        page.locator("*[id='first-name']").fill("Sad");
+        page.locator("*[id='last-name']").fill("Baby");
+        page.locator("*[id='postal-code']").fill("19000123");
+        page.locator("*[id='continue']").click();
+        page.locator("*[id='finish']").click();
+        page.waitForTimeout(3000);
+
+        Assertions.assertTrue(page.locator("xpath=//*[contains (text(), 'Thank you for your order!')]").isVisible());
+    }
+
+    @Test
+    void filterProductsTest() {
         // Verifica se redirecionou para a página de produtos
         Assertions.assertTrue(page.url().contains("inventory.html"));
 
@@ -22,3 +88,15 @@
 
         Assertions.assertTrue(page.locator("xpath=//span[@data-test='active-option' and contains(text(), 'Price (high to low)')]").isVisible());
     }
+
+    @AfterEach
+    void tearDown() {
+        context.close();
+    }
+
+    @AfterAll
+    static void tearDownAll() {
+        browser.close();
+        playwright.close();
+    }
+}
